@@ -17,8 +17,6 @@ import {
   setSeatAccess,
   setStage,
   setTaskRole,
-  toggleBoost,
-  toggleFollow,
 } from "../../actions";
 import { signInPath } from "../../lib/urls";
 import { SubmitButton } from "../../components/submit-button";
@@ -63,6 +61,7 @@ import {
 import { currentViewer } from "../../lib/session";
 import { ProjectScrollTop } from "../../components/project-scroll-top";
 import { ProjectLogo } from "../../components/project-logo";
+import { ProjectReactions } from "../../components/project-reactions";
 import { ProjectTabContent, ProjectTabSwitcher } from "../../components/project-tabs";
 import { isProjectTab, type ProjectTab } from "../../lib/project-tabs";
 import { isGitHubRepositoryUrl } from "../../lib/github";
@@ -229,39 +228,32 @@ export default async function ProjectPage({
                 </span>
               </Link>
 
-              <div className="hero-actions">
-                {viewer ? (
-                  <form action={toggleFollow}>
-                    <input type="hidden" name="slug" value={project.slug} />
-                    <SubmitButton className={`follow ${following ? "is-on" : ""}`}>
-                      {following ? tx(locale, "Mengikuti", "Following") : tx(locale, "Ikuti proyek", "Follow project")}
-                    </SubmitButton>
-                  </form>
-                ) : (
+              {viewer ? (
+                <ProjectReactions
+                  projectId={project.id}
+                  slug={project.slug}
+                  initialFollowing={following}
+                  initialSupported={boosted}
+                  initialSupportCount={project.boostCount}
+                  labels={{
+                    follow: tx(locale, "Ikuti proyek", "Follow project"),
+                    following: tx(locale, "Mengikuti", "Following"),
+                    support: tx(locale, "dukungan", "support"),
+                    error: tx(locale, "Belum tersimpan. Coba lagi.", "Could not save. Try again."),
+                  }}
+                />
+              ) : (
+                <div className="hero-actions">
                   <Link className="follow" href={signInPath(returnTo)}>
                     {tx(locale, "Ikuti proyek", "Follow project")}
                   </Link>
-                )}
-
-                {/* Support stays, small and to the side: it is a nice signal,
-                    not the point of the page. */}
-                {viewer ? (
-                  <form action={toggleBoost}>
-                    <input type="hidden" name="slug" value={project.slug} />
-                    <SubmitButton className={`boost ${boosted ? "is-on" : ""}`}>
-                      <span aria-hidden="true">♡</span>
-                      <strong>{project.boostCount}</strong>
-                      <span className="sr-only">{tx(locale, "dukungan", "support")}</span>
-                    </SubmitButton>
-                  </form>
-                ) : (
                   <Link className="boost" href={signInPath(returnTo)}>
                     <span aria-hidden="true">♡</span>
                     <strong>{project.boostCount}</strong>
                     <span className="sr-only">{tx(locale, "dukungan", "support")}</span>
                   </Link>
-                )}
-              </div>
+                </div>
+              )}
             </div>
 
             {(project.liveUrl || project.docUrl || project.repoUrl) && (
