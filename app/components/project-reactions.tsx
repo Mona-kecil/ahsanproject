@@ -1,7 +1,7 @@
 "use client";
 
 import { useOptimistic, useState, useTransition } from "react";
-import { setProjectFollow, setProjectSupport } from "../actions";
+import { setProjectBoost, setProjectFollow } from "../actions";
 import {
   applyProjectReaction,
   type ProjectReaction,
@@ -12,53 +12,51 @@ type Labels = {
   follow: string;
   following: string;
   support: string;
+  followers: string;
   error: string;
 };
 
 type Props = {
   projectId: number;
-  slug: string;
   initialFollowing: boolean;
-  initialSupported: boolean;
-  initialSupportCount: number;
+  initialFollowerCount: number;
+  initialBoosted: boolean;
+  initialBoostCount: number;
   labels: Labels;
 };
 
 export function ProjectReactions({
   projectId,
-  slug,
   initialFollowing,
-  initialSupported,
-  initialSupportCount,
+  initialFollowerCount,
+  initialBoosted,
+  initialBoostCount,
   labels,
 }: Props) {
   const [saved, setSaved] = useState<ProjectReactionState>({
     following: initialFollowing,
-    supported: initialSupported,
-    supportCount: initialSupportCount,
+    followerCount: initialFollowerCount,
+    boosted: initialBoosted,
+    boostCount: initialBoostCount,
   });
   const [shown, showOptimistic] = useOptimistic(saved, applyProjectReaction);
   const [followPending, startFollow] = useTransition();
-  const [supportPending, startSupport] = useTransition();
+  const [boostPending, startBoost] = useTransition();
   const [error, setError] = useState("");
+  const followFallback = setProjectFollow.bind(null, projectId, !shown.following);
+  const boostFallback = setProjectBoost.bind(null, projectId, !shown.boosted);
 
   function change(reaction: ProjectReaction) {
-    const start = reaction.kind === "follow" ? startFollow : startSupport;
+    const start = reaction.kind === "follow" ? startFollow : startBoost;
 
     start(async () => {
       setError("");
       showOptimistic(reaction);
 
       try {
-        const result =
-          reaction.kind === "follow"
-            ? await setProjectFollow(projectId, slug, reaction.active)
-            : await setProjectSupport(projectId, slug, reaction.active);
-
-        if (!result.ok) {
-          setError(labels.error);
-          return;
-        }
+        await (reaction.kind === "follow"
+          ? setProjectFollow(projectId, reaction.active)
+          : setProjectBoost(projectId, reaction.active));
 
         setSaved((current) => applyProjectReaction(current, reaction));
       } catch {
@@ -70,31 +68,50 @@ export function ProjectReactions({
   return (
     <div className="project-reactions">
       <div className="hero-actions">
-        <button
-          className={`follow ${shown.following ? "is-on" : ""}`}
-          type="button"
-          aria-pressed={shown.following}
-          aria-busy={followPending || undefined}
-          disabled={followPending}
-          onClick={() => change({ kind: "follow", active: !shown.following })}
+        <form
+          action={followFallback}
+          onSubmit={(event) => {
+            event.preventDefault();
+            change({ kind: "follow", active: !shown.following });
+          }}
         >
-          {shown.following ? labels.following : labels.follow}
-        </button>
+          <button
+            className={`follow ${shown.following ? "is-on" : ""}`}
+            type="submit"
+            aria-pressed={shown.following}
+            aria-busy={followPending || undefined}
+            disabled={followPending}
+          >
+            {shown.following ? labels.following : labels.follow}
+          </button>
+        </form>
 
-        <button
-          className={`boost ${shown.supported ? "is-on" : ""}`}
-          type="button"
-          aria-pressed={shown.supported}
-          aria-busy={supportPending || undefined}
-          aria-label={`${shown.supportCount} ${labels.support}`}
-          disabled={supportPending}
-          onClick={() => change({ kind: "support", active: !shown.supported })}
+        <form
+          action={boostFallback}
+          onSubmit={(event) => {
+            event.preventDefault();
+            change({ kind: "boost", active: !shown.boosted });
+          }}
         >
-          <span aria-hidden="true">♡</span>
-          <strong>{shown.supportCount}</strong>
-        </button>
+          <button
+            className={`boost ${shown.boosted ? "is-on" : ""}`}
+            type="submit"
+            aria-pressed={shown.boosted}
+            aria-busy={boostPending || undefined}
+            aria-label={`${shown.boostCount} ${labels.support}`}
+            disabled={boostPending}
+          >
+            <span aria-hidden="true">♡</span>
+            <strong>{shown.boostCount}</strong>
+          </button>
+        </form>
       </div>
       {error ? <p className="reaction-error" role="alert">{error}</p> : null}
+      {shown.followerCount > 0 ? (
+        <p className="follower-count">
+          {shown.followerCount} {labels.followers}
+        </p>
+      ) : null}
     </div>
   );
 }

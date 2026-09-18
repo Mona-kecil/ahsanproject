@@ -547,6 +547,7 @@ export const getProject = cache(async (slug: string): Promise<ProjectDetail | nu
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!project) return null;
+  cacheTag(tags.projectById(project.id));
 
   const [seats, comments, tasks, updates] = await Promise.all([
     supabase

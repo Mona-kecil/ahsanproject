@@ -145,6 +145,7 @@ export default async function ProjectPage({
     activeTab === "about"
       ? `/projects/${project.slug}`
       : `/projects/${project.slug}?tab=${activeTab}`;
+  const followersLabel = tx(locale, "orang mengikuti proyek ini.", "people follow this project.");
 
   const stageInput = toStageInput(project);
 
@@ -231,27 +232,35 @@ export default async function ProjectPage({
               {viewer ? (
                 <ProjectReactions
                   projectId={project.id}
-                  slug={project.slug}
                   initialFollowing={following}
-                  initialSupported={boosted}
-                  initialSupportCount={project.boostCount}
+                  initialFollowerCount={project.followerCount}
+                  initialBoosted={boosted}
+                  initialBoostCount={project.boostCount}
                   labels={{
                     follow: tx(locale, "Ikuti proyek", "Follow project"),
                     following: tx(locale, "Mengikuti", "Following"),
                     support: tx(locale, "dukungan", "support"),
+                    followers: followersLabel,
                     error: tx(locale, "Belum tersimpan. Coba lagi.", "Could not save. Try again."),
                   }}
                 />
               ) : (
-                <div className="hero-actions">
-                  <Link className="follow" href={signInPath(returnTo)}>
-                    {tx(locale, "Ikuti proyek", "Follow project")}
-                  </Link>
-                  <Link className="boost" href={signInPath(returnTo)}>
-                    <span aria-hidden="true">♡</span>
-                    <strong>{project.boostCount}</strong>
-                    <span className="sr-only">{tx(locale, "dukungan", "support")}</span>
-                  </Link>
+                <div className="project-reactions">
+                  <div className="hero-actions">
+                    <Link className="follow" href={signInPath(returnTo)}>
+                      {tx(locale, "Ikuti proyek", "Follow project")}
+                    </Link>
+                    <Link className="boost" href={signInPath(returnTo)}>
+                      <span aria-hidden="true">♡</span>
+                      <strong>{project.boostCount}</strong>
+                      <span className="sr-only">{tx(locale, "dukungan", "support")}</span>
+                    </Link>
+                  </div>
+                  {project.followerCount > 0 ? (
+                    <p className="follower-count">
+                      {project.followerCount} {followersLabel}
+                    </p>
+                  ) : null}
                 </div>
               )}
             </div>
@@ -918,12 +927,6 @@ export default async function ProjectPage({
                     })}
                   </div>
                 </form>
-              ) : null}
-
-              {project.followerCount > 0 ? (
-                <p className="follower-count">
-                  {tx(locale, `${project.followerCount} orang mengikuti proyek ini.`, `${project.followerCount} people follow this project.`)}
-                </p>
               ) : null}
             </section>
           </aside>

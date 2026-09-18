@@ -1,26 +1,31 @@
 export type ProjectReactionState = {
   following: boolean;
-  supported: boolean;
-  supportCount: number;
+  followerCount: number;
+  boosted: boolean;
+  boostCount: number;
 };
 
 export type ProjectReaction =
   | { kind: "follow"; active: boolean }
-  | { kind: "support"; active: boolean };
+  | { kind: "boost"; active: boolean };
 
-/** Apply the state the visitor asked for, without double-counting retries. */
 export function applyProjectReaction(
   state: ProjectReactionState,
   reaction: ProjectReaction,
 ): ProjectReactionState {
   if (reaction.kind === "follow") {
-    return { ...state, following: reaction.active };
+    const difference = Number(reaction.active) - Number(state.following);
+    return {
+      ...state,
+      following: reaction.active,
+      followerCount: Math.max(0, state.followerCount + difference),
+    };
   }
 
-  const difference = Number(reaction.active) - Number(state.supported);
+  const difference = Number(reaction.active) - Number(state.boosted);
   return {
     ...state,
-    supported: reaction.active,
-    supportCount: Math.max(0, state.supportCount + difference),
+    boosted: reaction.active,
+    boostCount: Math.max(0, state.boostCount + difference),
   };
 }

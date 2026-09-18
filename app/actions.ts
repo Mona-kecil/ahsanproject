@@ -774,11 +774,10 @@ export async function deleteUpdate(formData: FormData): Promise<void> {
  */
 export async function setProjectFollow(
   projectId: number,
-  slug: string,
   active: boolean,
-): Promise<{ ok: boolean }> {
+): Promise<void> {
   const personId = await viewerId();
-  if (!personId || !validReactionInput(projectId, slug, active)) return { ok: false };
+  if (!personId || !validReactionInput(projectId, active)) throw new Error("Invalid reaction");
 
   const supabase = await requireSupabase();
   const { error } = active
@@ -793,8 +792,7 @@ export async function setProjectFollow(
         .eq("user_id", personId);
   if (error) throw new Error(error.message);
 
-  staleProjectReaction(slug);
-  return { ok: true };
+  staleProjectReaction(projectId);
 }
 
 /* ------------------------------------------------------------------ *
@@ -964,13 +962,12 @@ export async function addComment(formData: FormData): Promise<void> {
   revalidatePath(`/projects/${slug}`);
 }
 
-export async function setProjectSupport(
+export async function setProjectBoost(
   projectId: number,
-  slug: string,
   active: boolean,
-): Promise<{ ok: boolean }> {
+): Promise<void> {
   const personId = await viewerId();
-  if (!personId || !validReactionInput(projectId, slug, active)) return { ok: false };
+  if (!personId || !validReactionInput(projectId, active)) throw new Error("Invalid reaction");
 
   const supabase = await requireSupabase();
   const { error } = active
@@ -985,22 +982,18 @@ export async function setProjectSupport(
         .eq("user_id", personId);
   if (error) throw new Error(error.message);
 
-  staleProjectReaction(slug);
+  staleProjectReaction(projectId);
   if (active) {
     revalidateTag(tags.trail(personId), "max");
-    revalidateTag(tags.projectTrail(slug), "max");
-    revalidateTag(tags.activity, "max");
   }
-  return { ok: true };
 }
 
-function validReactionInput(projectId: number, slug: string, active: boolean): boolean {
-  return Number.isSafeInteger(projectId) && projectId > 0 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) && typeof active === "boolean";
+function validReactionInput(projectId: number, active: boolean): boolean {
+  return Number.isSafeInteger(projectId) && projectId > 0 && typeof active === "boolean";
 }
 
-/** Mark public counts stale without rendering the current route in this action. */
-function staleProjectReaction(slug: string): void {
-  revalidateTag(tags.project(slug), "max");
+function staleProjectReaction(projectId: number): void {
+  revalidateTag(tags.projectById(projectId), "max");
   revalidateTag(tags.projects, "max");
 }
 
