@@ -792,7 +792,7 @@ export async function setProjectFollow(
         .eq("user_id", personId);
   if (error) throw new Error(error.message);
 
-  staleProjectReaction(projectId);
+  revalidateTag(tags.projects, "max");
 }
 
 /* ------------------------------------------------------------------ *
@@ -982,7 +982,7 @@ export async function setProjectBoost(
         .eq("user_id", personId);
   if (error) throw new Error(error.message);
 
-  staleProjectReaction(projectId);
+  revalidateTag(tags.projects, "max");
   if (active) {
     revalidateTag(tags.trail(personId), "max");
   }
@@ -990,11 +990,6 @@ export async function setProjectBoost(
 
 function validReactionInput(projectId: number, active: boolean): boolean {
   return Number.isSafeInteger(projectId) && projectId > 0 && typeof active === "boolean";
-}
-
-function staleProjectReaction(projectId: number): void {
-  updateTag(tags.projectById(projectId));
-  revalidateTag(tags.projects, "max");
 }
 
 /**

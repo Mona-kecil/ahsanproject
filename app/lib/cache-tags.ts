@@ -23,7 +23,6 @@ export const tags = {
   projects: "projects",
   /** One project's detail page, by slug. */
   project: (slug: string) => `project:${slug}`,
-  projectById: (projectId: number) => `project-id:${projectId}`,
   /** Every list built from `profiles`. */
   people: "people",
   /** One person's profile and portfolio, by username. */

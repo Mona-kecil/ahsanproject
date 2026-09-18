@@ -36,6 +36,7 @@ import { RelativeTime } from "../../components/relative-time";
 import { MAXIMUM, domainOf, projectBlurb } from "../../lib/brief";
 import {
   getProject,
+  getProjectReactionCounts,
   hasBoosted,
   isFollowing,
   listProjects,
@@ -130,7 +131,8 @@ export default async function ProjectPage({
   const access = accessOf(viewer?.id, project.owner.id, project.seats);
   const isOwner = access === "owner";
   const isManager = canManage(access);
-  const [boosted, following, history, proposals] = await Promise.all([
+  const [reactionCounts, boosted, following, history, proposals] = await Promise.all([
+    getProjectReactionCounts(project.id),
     viewer ? hasBoosted(project.id, viewer.id) : Promise.resolve(false),
     viewer ? isFollowing(project.id, viewer.id) : Promise.resolve(false),
     listProjectActivity(project.id, { slug: project.slug, viewer }),
@@ -141,6 +143,7 @@ export default async function ProjectPage({
         )
       : Promise.resolve([]),
   ]);
+  const { followerCount, boostCount } = reactionCounts ?? project;
   const returnTo =
     activeTab === "about"
       ? `/projects/${project.slug}`
@@ -233,9 +236,9 @@ export default async function ProjectPage({
                 <ProjectReactions
                   projectId={project.id}
                   initialFollowing={following}
-                  initialFollowerCount={project.followerCount}
+                  initialFollowerCount={followerCount}
                   initialBoosted={boosted}
-                  initialBoostCount={project.boostCount}
+                  initialBoostCount={boostCount}
                   labels={{
                     follow: tx(locale, "Ikuti proyek", "Follow project"),
                     following: tx(locale, "Mengikuti", "Following"),
@@ -252,13 +255,13 @@ export default async function ProjectPage({
                     </Link>
                     <Link className="boost" href={signInPath(returnTo)}>
                       <span aria-hidden="true">♡</span>
-                      <strong>{project.boostCount}</strong>
+                      <strong>{boostCount}</strong>
                       <span className="sr-only">{tx(locale, "dukungan", "support")}</span>
                     </Link>
                   </div>
-                  {project.followerCount > 0 ? (
+                  {followerCount > 0 ? (
                     <p className="follower-count">
-                      {project.followerCount} {followersLabel}
+                      {followerCount} {followersLabel}
                     </p>
                   ) : null}
                 </div>
