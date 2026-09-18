@@ -106,7 +106,7 @@ export type ProjectSummary = {
   doneTaskCount: number;
 };
 
-export type ProjectReactionCounts = Pick<ProjectSummary, "followerCount" | "boostCount">;
+type ProjectReactionCounts = Pick<ProjectSummary, "followerCount" | "boostCount">;
 
 export type SeatView = {
   id: number;

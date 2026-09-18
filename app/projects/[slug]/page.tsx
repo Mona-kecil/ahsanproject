@@ -183,9 +183,6 @@ export default async function ProjectPage({
           {isOwner ? <Link className="edit-link" href={`/projects/${project.slug}/edit`}>{tx(locale, "Edit proyek", "Edit project")}</Link> : null}
         </div>
 
-        {/* Identity, then what it is, then who is behind it, then the two
-            things a visitor can do about it. Nothing measures the project
-            here — that is what the journey further down is for. */}
         <section className="project-hero">
           <div className="project-hero-copy">
             <div className="project-hero-top">
@@ -235,10 +232,7 @@ export default async function ProjectPage({
               {viewer ? (
                 <ProjectReactions
                   projectId={project.id}
-                  initialFollowing={following}
-                  initialFollowerCount={followerCount}
-                  initialBoosted={boosted}
-                  initialBoostCount={boostCount}
+                  initialState={{ following, followerCount, boosted, boostCount }}
                   labels={{
                     follow: tx(locale, "Ikuti proyek", "Follow project"),
                     following: tx(locale, "Mengikuti", "Following"),

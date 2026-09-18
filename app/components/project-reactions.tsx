@@ -18,27 +18,16 @@ type Labels = {
 
 type Props = {
   projectId: number;
-  initialFollowing: boolean;
-  initialFollowerCount: number;
-  initialBoosted: boolean;
-  initialBoostCount: number;
+  initialState: ProjectReactionState;
   labels: Labels;
 };
 
 export function ProjectReactions({
   projectId,
-  initialFollowing,
-  initialFollowerCount,
-  initialBoosted,
-  initialBoostCount,
+  initialState,
   labels,
 }: Props) {
-  const [saved, setSaved] = useState<ProjectReactionState>({
-    following: initialFollowing,
-    followerCount: initialFollowerCount,
-    boosted: initialBoosted,
-    boostCount: initialBoostCount,
-  });
+  const [saved, setSaved] = useState(initialState);
   const [shown, showOptimistic] = useOptimistic(saved, applyProjectReaction);
   const [followPending, startFollow] = useTransition();
   const [boostPending, startBoost] = useTransition();
