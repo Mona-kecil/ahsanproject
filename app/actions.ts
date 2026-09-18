@@ -993,7 +993,7 @@ function validReactionInput(projectId: number, active: boolean): boolean {
 }
 
 function staleProjectReaction(projectId: number): void {
-  revalidateTag(tags.projectById(projectId), "max");
+  updateTag(tags.projectById(projectId));
   revalidateTag(tags.projects, "max");
 }
 
